@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Vector con arco de ángulo (CCW)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body>
+<script>
+let origin, tip;
+let dragging = false;
+
+function setup() {
+  createCanvas(500, 500);
+  origin = createVector(width / 2, height / 2);          // Origen al centro
+  tip    = createVector(origin.x + 120, origin.y - 80);   // Primer cuadrante visual
+  angleMode(DEGREES);                                     // Trabajar en grados
+  textFont('monospace');
+}
+
+function draw() {
+  background(240);
+
+  // Ejes
+  stroke(200);
+  line(0, origin.y, width, origin.y);
+  line(origin.x, 0, origin.x, height);
+
+  // Diferencias en coords "cartesianas"
+  let dx = tip.x - origin.x;       // derecha +
+  let dy = origin.y - tip.y;       // arriba + (invertimos Y de pantalla)
+
+  // Magnitud y ángulo (desde +X, CCW)
+  let mag = sqrt(dx*dx + dy*dy);
+  let angleDeg = atan2(dy, dx);
+  angleDeg = constrain(angleDeg, 0, 90);
+
+  // Arco del ángulo: en p5 los ángulos positivos son horario,
+  // así que para CCW usamos un valor negativo
+  noFill();
+  stroke(150, 0, 0);
+  strokeWeight(2);
+  const r = 70;
+  arc(origin.x, origin.y, r, r, 0, -angleDeg);
+
+  // Punto medio y etiqueta de magnitud (arriba-izquierda del centro del vector)
+  let midX = (origin.x + tip.x) / 2 - 20;
+  let midY = (origin.y + tip.y) / 2 - 10;
+
+  // Dibujar vector con flecha
+  stroke(0);
+  strokeWeight(2);
+  line(origin.x, origin.y, tip.x, tip.y);
+  drawArrow(origin, tip);
+
+  // Texto
+  noStroke();
+  fill(0);
+  text(`Ángulo: ${angleDeg.toFixed(1)}°`, tip.x + 10, tip.y - 12);
+  text(`Mag: ${mag.toFixed(1)}`, midX, midY);
+
+  // Opcional: etiqueta θ sobre el arco (en su punto medio)
+  const thetaMid = -angleDeg / 2; // negativo para CCW
+  const tX = origin.x + (r/2) * cos(thetaMid);
+  const tY = origin.y + (r/2) * sin(thetaMid);
+  text('θ', tX + 4, tY - 4);
+}
+
+function mousePressed() {
+  if (dist(mouseX, mouseY, tip.x, tip.y) < 12) dragging = true;
+}
+
+function mouseDragged() {
+  if (!dragging) return;
+  // Restringir al primer cuadrante visual (derecha y arriba del origen)
+  const newX = max(mouseX, origin.x);
+  const newY = min(mouseY, origin.y);
+  tip.set(newX, newY);
+}
+
+function mouseReleased() { dragging = false; }
+
+function drawArrow(base, vec) {
+  // Flecha en la punta
+  const ang = atan2(base.y - vec.y, vec.x - base.x);
+  push();
+  translate(vec.x, vec.y);
+  rotate(-ang);
+  fill(0);
+  noStroke();
+  triangle(0, 0, -9, 4, -9, -4);
+  pop();
+}
+</script>
+</body>
+</html>
